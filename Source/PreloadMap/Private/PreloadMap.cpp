@@ -486,7 +486,6 @@ void UPreloadMapSubsystem::SpawnOrReuseGhost(float RadiusCm, const FVector& Spaw
 	if (GhostActor == nullptr)
 	{
 		FActorSpawnParameters SpawnParameters;
-		SpawnParameters.Name = TEXT("PreloadMapGhostActor");
 		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 		GhostActor = GetWorld()->SpawnActor<APreloadMapGhostActor>(SpawnLocation, FRotator::ZeroRotator, SpawnParameters);
