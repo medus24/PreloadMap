@@ -1,0 +1,5 @@
+# Version 1
+/preloadmap/preloadmap
+/preloadmap/preloadmap_configuration
+/preloadmap/preloadmap_configurationstruct
+/preloadmap/rootgameinstance_preloadmap
