@@ -16,6 +16,12 @@ public:
     int32 RadiusPower{};
 
     UPROPERTY(BlueprintReadWrite)
+    int32 PostStreamDelayMs{};
+
+    UPROPERTY(BlueprintReadWrite)
+    int32 StartupDelay{};
+
+    UPROPERTY(BlueprintReadWrite)
     bool WholeMap{};
 
     /* Retrieves active configuration value and returns object of this struct containing it */

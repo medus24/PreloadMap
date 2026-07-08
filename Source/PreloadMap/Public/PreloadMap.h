@@ -25,6 +25,12 @@ struct FPreloadMapRuntimeConfig
 
 	UPROPERTY()
 	int32 RadiusPower = 8;
+
+	UPROPERTY()
+	int32 PostStreamDelayMs = 0;
+
+	UPROPERTY()
+	int32 StartupDelay = 3;
 	
 	UPROPERTY()
 	bool WholeMap = false;
@@ -139,6 +145,10 @@ private:
 	double LastPointStartTime = 0.0;
 
 	double AutoStartDelayEndTime = 0.0;
+
+	double WaitAfterStreamingUntil = 0.0;
+
+	FPreloadMapRuntimeConfig RuntimeConfig;
 
 	int32 LastVisitedPoints = 0;
 	EPreloadStatus CurrentStatus = EPreloadStatus::Idle;
