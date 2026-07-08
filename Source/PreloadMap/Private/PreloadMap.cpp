@@ -134,6 +134,8 @@ FPreloadMapRuntimeConfig UPreloadMapSubsystem::ReadConfiguration() const
 
 	Result.AutoPreload = Config.AutoPreload;
 	Result.RadiusPower = Config.RadiusPower;
+	Result.PostStreamDelayMs = Config.PostStreamDelayMs;
+	Result.StartupDelay = Config.StartupDelay;
 	Result.WholeMap = Config.WholeMap;
 
 	return Result;
@@ -159,6 +161,20 @@ void UPreloadMapSubsystem::Tick(float DeltaTime)
 
 		if (StableFrames >= 2)
 		{
+			if (WaitAfterStreamingUntil == 0.0)
+			{
+				WaitAfterStreamingUntil =
+					FPlatformTime::Seconds() +
+					RuntimeConfig.PostStreamDelayMs / 1000.0;
+			}
+
+			if (FPlatformTime::Seconds() < WaitAfterStreamingUntil)
+			{
+				return;
+			}
+
+			WaitAfterStreamingUntil = 0.0;
+
 			const double PointTime =
 				FPlatformTime::Seconds() - LastPointStartTime;
 
@@ -277,17 +293,9 @@ int32 UPreloadMapSubsystem::GetLastVisitedPoints() const
 }
 
 void UPreloadMapSubsystem::TryAutoStart()
-{
+{	
 	if (bAutoStartChecked || bPreloadRunning)
 	{
-		return;
-	}
-
-	const FPreloadMapRuntimeConfig Config = ReadConfiguration();
-
-	if (!Config.AutoPreload)
-	{
-		bAutoStartChecked = true;
 		return;
 	}
 
@@ -316,14 +324,31 @@ void UPreloadMapSubsystem::TryAutoStart()
 		return;
 	}
 
+	if (PlayerController->AcknowledgedPawn != Pawn)
+	{
+		return;
+	}
+
+	const FPreloadMapRuntimeConfig Config = ReadConfiguration();
+
 	if (AutoStartDelayEndTime == 0.0)
 	{
-		AutoStartDelayEndTime = FPlatformTime::Seconds() + 3.0;
+
+		AutoStartDelayEndTime =
+			FPlatformTime::Seconds() +
+			Config.StartupDelay;
+
 		return;
 	}
 
 	if (FPlatformTime::Seconds() < AutoStartDelayEndTime)
 	{
+		return;
+	}
+
+	if (!Config.AutoPreload)
+	{
+		bAutoStartChecked = true;
 		return;
 	}
 
@@ -506,7 +531,8 @@ void UPreloadMapSubsystem::StartPreload(bool bManualStart)
 		return;
 	}
 
-	const FPreloadMapRuntimeConfig Config = ReadConfiguration();
+	RuntimeConfig = ReadConfiguration();
+	const FPreloadMapRuntimeConfig& Config = RuntimeConfig;
 
 	float RadiusMeters = GetRadiusMeters();
 
@@ -591,6 +617,8 @@ void UPreloadMapSubsystem::StartPreload(bool bManualStart)
 
 void UPreloadMapSubsystem::AdvanceToNextPoint()
 {
+	WaitAfterStreamingUntil = 0.0;
+
 	if (!bPreloadRunning || GhostActor == nullptr)
 	{
 		return;
@@ -626,6 +654,8 @@ void UPreloadMapSubsystem::AdvanceToNextPoint()
 
 void UPreloadMapSubsystem::FinishPreload(EPreloadStatus Result)
 {
+	WaitAfterStreamingUntil = 0.0;
+
 	LastElapsedSeconds =
 		FPlatformTime::Seconds() - PreloadStartTime;
 
